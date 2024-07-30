@@ -10,7 +10,7 @@ from datetime import datetime
 from utils.image import Image
 from utils.arguments import Arguments
 from utils.print import Print
-from picamera2 import Picamera2
+from utils.webcam import WebCam
 
 def signalHandler(signal, frame):
     global closeSafe
@@ -23,6 +23,7 @@ closeSafe = False
 # prepare console arguments
 Arguments.prepareRecognitionArguments()
 
+
 # load the known faces and embeddings along with OpenCV's Haar
 # cascade for face detection
 Print.printJson("status", "loading encodings + face detector...")
@@ -34,13 +35,11 @@ Print.printJson("status", "starting video stream...")
 processWidth = Arguments.get("processWidth")
 resolution = Arguments.get("resolution").split(",")
 resolution = (int(resolution[0]), int(resolution[1]))
-Print.printJson("status", resolution)
-Print.printJson("status", processWidth)
+Print.printJson("resolution", resolution)
+Print.printJson("processWidth", processWidth)
 
-picam2 = Picamera2()
-picam2.configure(picam2.create_preview_configuration(main={"size": (resolution[0], resolution[1]), "format": "XRGB8888"}))
-picam2.start()
-
+webcam = WebCam(Arguments.get("camera"))
+camera = webcam.get()
 
 # variable for prev names
 prevNames = []
@@ -58,7 +57,7 @@ tolerance = float(Arguments.get("tolerance"))
 # loop over frames from the video file stream
 while True:
     # read the frame
-    originalFrame = picam2.capture_array()
+    originalFrame = webcam.getFrame()
     
     # adjust image brightness and contrast
     originalFrame = Image.adjust_brightness_contrast(
@@ -188,5 +187,5 @@ while True:
     time.sleep(Arguments.get("interval") / 1000)
 
 # do a bit of cleanup
-picam2.stop()
+camera.stop()
 cv2.destroyAllWindows()

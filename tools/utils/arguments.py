@@ -34,6 +34,7 @@ class Arguments:
 
         Arguments.args = vars(ap.parse_args())
 
+
     def prepareRecognitionArguments():
         ap = argparse.ArgumentParser()
         ap.add_argument(
@@ -41,7 +42,7 @@ class Arguments:
             "--cascade",
             type=str,
             required=False,
-            default="../model/haarcascade_frontalface_default.xml",
+            default="./model/haarcascade_frontalface_default.xml",
             help="path to where the face cascade resides",
         )
         ap.add_argument(
@@ -49,7 +50,7 @@ class Arguments:
             "--encodings",
             type=str,
             required=False,
-            default="../model/encodings.pickle",
+            default="./model/encodings.pickle",
             help="path to serialized db of facial encodings",
         )
         ap.add_argument(
@@ -107,7 +108,7 @@ class Arguments:
             "-ds",
             "--dataset",
             required=False,
-            default="../dataset/",
+            default="./dataset/",
             help="path to input directory of faces + images",
         )
         ap.add_argument(
@@ -139,6 +140,28 @@ class Arguments:
             type=int,
             default=500,
             help="Resolution of the image which will be processed from OpenCV",
+        )
+        ap.add_argument(
+            "-cam",
+            "--camera",
+            type=str,
+            required=False,
+            default="usb",
+            help="camera type, default is `usb` but can be`pi` for picamera",
+        )
+
+        Arguments.args = vars(ap.parse_args())
+
+
+    def prepareCaptureArguments():
+        ap = argparse.ArgumentParser()
+        ap.add_argument(
+            "-u",
+            "--user",
+            type=str,
+            required=False,
+            # default="default",
+            help="user name, where user images will be stored during capture, i.e.: ./dataset/< user name >",
         )
 
         Arguments.args = vars(ap.parse_args())

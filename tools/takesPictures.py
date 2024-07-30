@@ -1,31 +1,24 @@
-import time
-from picamera2 import Picamera2, Preview
-from libcamera import Transform
+import sys, os, tty, time
 from pynput.keyboard import Key, Listener
+from utils.arguments import Arguments
+from utils.photocam import PhotoCam
+
 import os
 import sys
-# Raspberry Pi Camera Image Capture Script
-# Captures images from a Raspberry Pi camera and saves them to folders in the 'root/dataset' 
-# directory of the module, with each folder named after the chosen 'name.'
-# Press the space key to take pictures and 'q' to exit the application.
-# Adjust camera rotation if needed.
 
 
-# --------------------------------------------------------------------------------
-# -- Edit this Parameter
-# --------------------------------------------------------------------------------
+
+Arguments.prepareCaptureArguments()
+
+
 # Set your name, which should be used to expand the dataset
-name = 'YOUR_NAME' 
+name = Arguments.get("user")
 
-# Set camera rotation
-# Transform()                   - the identity transform, which is the default
-# Transform(hflip=1)            - horizontal flip
-# Transform(vflip=1)            - vertical flip
-# Transform(hflip=1, vflip=1)   - horizontal and vertical flip (equivalent to a 180 degree rotation)
-transform= Transform(vflip=1); 
-# --------------------------------------------------------------------------------
-# -- Edit this Parameter
-# --------------------------------------------------------------------------------
+if name is None:
+    print('\n\t------------------------------------------------------------------- \
+    \n\n\tError: please provide option -u or option --user for photo capture \
+    \n\n\t-------------------------------------------------------------------\n')
+    sys.exit()
 
 
 
@@ -35,15 +28,9 @@ output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dataset",
 # Create the directory if it doesn't exist
 os.makedirs(output_dir, exist_ok=True)
 
-picam2 = Picamera2()
-camera_config = picam2.create_still_configuration(lores={"size": (640, 480)}, display="lores")
-camera_config["transform"] = transform 
 
-picam2.configure(camera_config)
-
-
-picam2.start_preview(Preview.QTGL)
-picam2.start()
+photo_cam = PhotoCam()
+camera = photo_cam.get()
 
 # Get the existing image files in the output directory
 existing_images = os.listdir(output_dir)
@@ -63,29 +50,67 @@ if existing_numbers:
 else:
     next_photo_number = 1
 
-def on_key_release(key):
-    global photo_captured
-    if key == Key.space:
+print('next_photo_number', next_photo_number)
+
+
+def getkey():
+    tty.setcbreak(sys.stdin.fileno())
+
+    while True:
+        b = os.read(sys.stdin.fileno(), 3).decode()
+
+        if len(b) == 3:
+            k = ord(b[2])
+        else:
+            k = ord(b)
+
+        print('k', k)
+
+        key_mapping = {
+            127: 'backspace',
+            10: 'return',
+            32: 'space',
+            9: 'tab',
+            27: 'esc',
+            65: 'up',
+            66: 'down',
+            67: 'right',
+            68: 'left'
+        }
+        return key_mapping.get(k, chr(k))
+
+
+def capturepicture(key):
+    global photo_captured    
+
+    if key == 'space':
         global next_photo_number
         # Generate the filename with the format "imgXX.jpg"
         img_filename = f"img{next_photo_number:02d}.jpg"
         next_photo_number += 1
          # Save the image to the specified directory
         img_path = os.path.join(output_dir, img_filename)
-        picam2.capture_file(img_path)
+        camera.capture(img_path)
+        print('key space ?', key)
         print(f"Photo captured and saved as '{img_filename}' in '{output_dir}'")
         time.sleep(1)  # Wait for 2 seconds to stabilize the image
 
     if key == Key.esc:
         print("Exiting the application.")
-        picam2.stop_preview()
-        picam2.stop()
+        camera.stop()
         sys.exit()
 
+try:
+    while True:
+        k = getkey()
+        if k == 'esc':
+            quit()
+        elif k == 'space':
+            capturepicture(k)
+        else:
+            print(k)
 
-# Create a listener to detect key releases
-with Listener(on_release=on_key_release) as listener:
-    listener.join()
-
-picam2.stop_preview()
-picam2.stop()
+except (KeyboardInterrupt, SystemExit):
+    camera.stop()
+    os.system('stty sane')
+    print('stopping.')
