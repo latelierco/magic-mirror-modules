@@ -82,7 +82,7 @@ class Arguments:
             "--interval",
             type=int,
             required=False,
-            default=2000,
+            default=250,
             help="interval between recognitions",
         )
         ap.add_argument(

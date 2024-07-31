@@ -50,7 +50,7 @@ if existing_numbers:
 else:
     next_photo_number = 1
 
-print('next_photo_number', next_photo_number)
+print('next photo number: ', next_photo_number)
 
 
 def getkey():
@@ -63,8 +63,6 @@ def getkey():
             k = ord(b[2])
         else:
             k = ord(b)
-
-        print('k', k)
 
         key_mapping = {
             127: 'backspace',
@@ -91,7 +89,6 @@ def capturepicture(key):
          # Save the image to the specified directory
         img_path = os.path.join(output_dir, img_filename)
         camera.capture(img_path)
-        print('key space ?', key)
         print(f"Photo captured and saved as '{img_filename}' in '{output_dir}'")
         time.sleep(1)  # Wait for 2 seconds to stabilize the image
 
