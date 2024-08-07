@@ -3,25 +3,19 @@ from pynput.keyboard import Key, Listener
 from utils.arguments import Arguments
 from utils.photocam import PhotoCam
 
-import os
-import sys
-
+# import the opencv library 
+import cv2 
 
 
 Arguments.prepareCaptureArguments()
 
-
 # Set your name, which should be used to expand the dataset
 name = Arguments.get("user")
-
 if name is None:
     print('\n\t------------------------------------------------------------------- \
     \n\n\tError: please provide option -u or option --user for photo capture \
     \n\n\t-------------------------------------------------------------------\n')
     sys.exit()
-
-
-
 
 # Specifies the directory for saving the images
 output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dataset", name)
@@ -29,8 +23,12 @@ output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dataset",
 os.makedirs(output_dir, exist_ok=True)
 
 
-photo_cam = PhotoCam()
-camera = photo_cam.get()
+# define a video capture object 
+camera = cv2.VideoCapture(0) 
+if not camera.isOpened():
+    camera.open()
+    time.sleep(1)
+
 
 # Get the existing image files in the output directory
 existing_images = os.listdir(output_dir)
@@ -50,36 +48,15 @@ if existing_numbers:
 else:
     next_photo_number = 1
 
-print('next photo number: ', next_photo_number)
+    print('\n\t------------------------------------------------------------------- \
+    \n\n\t              please, press space bar to capture image \
+    \n\n\t              next photo number: ' + str(next_photo_number) + ' \
+    \n\n\t-------------------------------------------------------------------\n\n')
 
 
-def getkey():
-    tty.setcbreak(sys.stdin.fileno())
+def capturepicture(key, frame):
 
-    while True:
-        b = os.read(sys.stdin.fileno(), 3).decode()
-
-        if len(b) == 3:
-            k = ord(b[2])
-        else:
-            k = ord(b)
-
-        key_mapping = {
-            127: 'backspace',
-            10: 'return',
-            32: 'space',
-            9: 'tab',
-            27: 'esc',
-            65: 'up',
-            66: 'down',
-            67: 'right',
-            68: 'left'
-        }
-        return key_mapping.get(k, chr(k))
-
-
-def capturepicture(key):
-    global photo_captured    
+    global photo_captured
 
     if key == 'space':
         global next_photo_number
@@ -88,26 +65,43 @@ def capturepicture(key):
         next_photo_number += 1
          # Save the image to the specified directory
         img_path = os.path.join(output_dir, img_filename)
-        camera.capture(img_path)
+
+        cv2.imwrite(img_path, frame)
+
         print(f"Photo captured and saved as '{img_filename}' in '{output_dir}'")
         time.sleep(1)  # Wait for 2 seconds to stabilize the image
 
-    if key == Key.esc:
-        print("Exiting the application.")
-        camera.stop()
-        sys.exit()
 
-try:
-    while True:
-        k = getkey()
-        if k == 'esc':
-            quit()
-        elif k == 'space':
-            capturepicture(k)
-        else:
-            print(k)
 
-except (KeyboardInterrupt, SystemExit):
-    camera.stop()
-    os.system('stty sane')
-    print('stopping.')
+while(True): 
+      
+    # Capture the video frame 
+    # by frame 
+    ret, frame = camera.read() 
+  
+    # Display the resulting frame 
+    cv2.imshow('frame', frame) 
+      
+    # the 'q' button is set as the 
+    # quitting button you may use any 
+    # desired button of your choice 
+
+
+    key = cv2.waitKey(1)
+
+    if key%256 == 32:
+        capturepicture('space', frame)
+
+    elif (
+        key%256 == 27 or # ESC key
+        key%256 == 113 or # q key
+        key%256 == 81 # Q key
+    ):
+        # ESC pressed
+        break
+
+  
+# After the loop release the cap object 
+camera.release() 
+# Destroy all the windows 
+cv2.destroyAllWindows() 
