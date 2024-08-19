@@ -122,3 +122,10 @@ dataset/*
 
 # node_modules
 node_modules
+
+# various 
+backoffice-experimental/
+backoffice-magic-mirror/
+backoffice-vue/
+test.py
+
