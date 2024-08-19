@@ -21,7 +21,7 @@ class Arguments:
             "-e",
             "--encodings",
             required=False,
-            default="../model/encodings.pickle",
+            default="./model/encodings.pickle",
             help="path to serialized db of facial encodings",
         )
         ap.add_argument(
