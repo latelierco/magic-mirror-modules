@@ -1,4 +1,4 @@
 dlib
-opencv
+opencv-python
 face_recognition
 pynput
