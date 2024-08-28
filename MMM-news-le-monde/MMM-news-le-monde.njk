@@ -1,0 +1,9 @@
+<!--
+	Use ` | safe` to allow html tages within the text string.
+	https://mozilla.github.io/nunjucks/templating.html#autoescaping
+-->
+<div id="news-french">
+	<div class="large bright">Le Monde NEWS {{ text | safe }}</div>
+	<div id="title" class="large bright">title {{ title }}</div>
+	<div id="description" class="large bright">description {{ description }}</div>
+</div>

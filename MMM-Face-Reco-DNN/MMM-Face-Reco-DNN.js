@@ -480,3 +480,4 @@ Module.register('MMM-Face-Reco-DNN', {
     return wrapperEl;
   },
 });
+

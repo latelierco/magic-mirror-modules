@@ -14,7 +14,7 @@ class Arguments:
             "-i",
             "--dataset",
             required=False,
-            default="../dataset/",
+            default="./dataset/",
             help="path to input directory of faces + images",
         )
         ap.add_argument(

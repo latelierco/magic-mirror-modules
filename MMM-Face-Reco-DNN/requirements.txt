@@ -1,0 +1,4 @@
+dlib
+opencv
+face_recognition
+pynput

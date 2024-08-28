@@ -1,0 +1,41 @@
+<!--
+	Use ` | safe` to allow html tags within the text string.
+	https://mozilla.github.io/nunjucks/templating.html#autoescaping
+-->
+
+{% if sections %}
+
+	<div id="idf-mobilite">
+
+		<!-- 
+
+		departureCity
+		arrivalCity
+		duration
+		nbTransfers
+		sections
+
+		-->
+
+		<div class="medium bright light">{{ departureCity }} - {{ arrivalCity }}</div>
+		<div class="medium dimmed light">
+			{{ duration }}
+			{% if nbTransfers %}
+			 - {{ nbTransfers }} transert(s)
+			{% endif %}
+		</div>
+		<ul>
+			{% for section in sections %}
+
+				<li class="idf-mob-section">{{ section.message }}</li>
+
+			{% endfor %}
+		</ul>
+
+	</div>
+
+{% else %}
+
+	<div id="idf-mobilite"></div>
+
+{% endif %}
