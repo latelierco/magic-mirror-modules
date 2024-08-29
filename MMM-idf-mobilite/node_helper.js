@@ -91,21 +91,26 @@ module.exports = NodeHelper.create({
 
 	async getUserProfile(userName) {
 
-		let profile = null;
+		try {
+			let profile = null;
 
-		const q = query(
-			collection(this.db, 'users'),
-			where('user_name', '==', userName)
-		);
+			const q = query(
+				collection(this.db, 'users'),
+				where('user_name', '==', userName)
+			);
 
-		const snap = await getDocs(q)
-		snap.forEach(doc => {
-			profile = doc.data();
-			profile.id = doc.id
-		})
+			const snap = await getDocs(q)
+			snap.forEach(doc => {
+				profile = doc.data();
+				profile.id = doc.id
+			})
 
-		console.info(`[PUBLIC_TRANSPORTATION_IDF_MOB][INFO] Got profile for user ${ userName } - OK`);
-		return profile;
+			console.debug('profile', profile)
+			console.info(`[PUBLIC_TRANSPORTATION_IDF_MOB][INFO] Got profile for user ${ userName } - OK`);
+			return profile;
+		} catch(err) {
+			console.error(err);
+		}
 	},
 
 
