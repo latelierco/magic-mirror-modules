@@ -3,60 +3,20 @@ Module.register('MMM-news-le-monde', {
 	// Default module config.
 
 	defaults: {
-		fetchInterval: 15 * 60 * 1000,
+		MAX_NEWS_LENGTH: 20,
 		url: 'https://www.lemonde.fr/rss/en_continu.xml?refresh=' + Math.floor(Math.random() * 1000000),
-		title: '',
-		description: '',
-		started: false,
+		news: []
 	},
 
 
 	start() {
-		this.sendSocketNotification('NEWS_LE_MONDE_CONFIG', { config: this.config })
+		console.debug('this.newsItem', this.newsItem)
+
+		this.url = this.config.url;
+		this.news = this.config.news;
+
+		this.sendSocketNotification('NEWS_LE_MONDE_CONFIG', { config: this.config });
 	},
-
-
-	getDom() {
-
-		const wrapper = document.createElement('DIV');
-		wrapper.setAttribute('id', 'french-news');
-
-		if (
-			!this.title ||
-			!this.description
-		) return wrapper;
-
-		const logo = document.createElement('DIV');
-		logo.setAttribute('id', 'french-news-logo');
-
-		const content = document.createElement('DIV');
-		content.setAttribute('id', 'french-news-content');
-
-		const titleSpan = document.createElement('SPAN');
-		const descriptionSpan = document.createElement('SPAN');
-
-		titleSpan.classList.add('bright');
-		titleSpan.classList.add('medium');
-		titleSpan.classList.add('semi-thin');
-		titleSpan.setAttribute('id', 'french-news-title');
-
-		descriptionSpan.classList.add('dimmed')
-		descriptionSpan.classList.add('medium');
-		descriptionSpan.classList.add('light');
-		descriptionSpan.setAttribute('id', 'french-news-description');
-
-		titleSpan.textContent = this.title + ' : ';
-		descriptionSpan.textContent = this.description;
-
-		content.appendChild(titleSpan);
-		content.appendChild(descriptionSpan);
-
-		wrapper.appendChild(logo)
-		wrapper.appendChild(content)
-		return wrapper;
-	},
-
-
 
 
 	getTemplate () {
@@ -65,7 +25,7 @@ Module.register('MMM-news-le-monde', {
 
 
 	getTemplateData () {
-		return this.config;
+		return { news: this.news  };
 	},
 
 
@@ -73,16 +33,6 @@ Module.register('MMM-news-le-monde', {
 
 		if (/^NEWS_LE_MONDE(.*)?$/.test(notification) === false)
 			return;
-
-	},
-
-
-	getParsedNews(payload) {
-		try {
-			return JSON.parse(payload);
-		} catch(err) {
-			console.error('[NEWS_LE_MONDE][ERROR] JSON parse error with news batch');
-		}
 	},
 
 
@@ -91,35 +41,31 @@ Module.register('MMM-news-le-monde', {
 		if (/^NEWS_LE_MONDE(.*)?$/.test(notification) === false)
 			return;
 
-		this.getContent(notification, payload)
+		if (notification === 'NEWS_LE_MONDE_CONTENT') {
+			this.news = this.arrayPad(payload);
+			console.debug('this.news.length', this.news.length)
+			this.updateDom();
+		}
 	},
 
 
-	getContent(notification, payload) {
+	arrayPad(payload) {
+		const maxLength = this.config.MAX_NEWS_LENGTH;
 
-		if (notification !== 'NEWS_LE_MONDE_CONTENT')
-			return;
+		// return the first 60 items
+		if (payload.length >= maxLength)
+			return payload.slice(0, maxLength);
 
-		const {
-			title = null,
-			description = null
-		} = this.getParsedNews(payload);
+		// concat until we have 60 items
+		let padded = [];
+		while(padded.length < maxLength) {
+			const projectedArrayLength = padded.length + payload.length;
 
-
-		if (!title || !description)
-			return;
-
-		this.title = title;
-		this.description = description;
-
-		this.updateDom( {
-			options: {
-				speed: 1500,
-				animate: {
-					in: "animateIn",
-					out: "animateOut",
-				}
+			if (projectedArrayLength > maxLength) {
+				padded = padded.concat(payload.slice(0, (maxLength - padded.length)));
 			}
-		});
+			padded = padded.concat(payload);
+		}
+		return padded;
 	},
 });

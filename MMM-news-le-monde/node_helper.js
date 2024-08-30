@@ -14,22 +14,25 @@ module.exports = NodeHelper.create({
 		this.xmlParser = new XMLParser();
 		this.url = null;
 		this.config = null;
-		this.cycle = null;
-		this.news = [];
-		this.iteration = 0;
 	},
 
 
-	socketNotificationReceived (notification, payload) {
+	async socketNotificationReceived(notification, payload) {
 
-		if (this.isNewsNotif(notification) === false)
-			return;
+		try {
+			if (this.isNewsNotif(notification) === false)
+				return;
 
-		if (notification === 'NEWS_LE_MONDE_CONFIG') {
-			this.config = payload?.config;
-			console.info('[NEWS_LE_MONDE][INFO] config setup - OK')
-			this.getNews();
+			if (notification !== 'NEWS_LE_MONDE_CONFIG')
+				return;
+
+			await this.cycle(payload);
+			await this.hourlyCycle(payload)
+
+		} catch(err) {
+			console.error(err);
 		}
+
 	},
 
 
@@ -38,38 +41,31 @@ module.exports = NodeHelper.create({
 	},
 
 
+	hourlyCycle(payload) {
+		setInterval(async() => {
+			await this.cycle(payload);
+		}, 60 * 60 * 1000)
+	},
+
+
+	async cycle(payload) {
+		this.config = payload?.config;
+		console.info('[NEWS_LE_MONDE][INFO] config setup - OK');
+		const news = await this.getNews();
+		console.info('[NEWS_LE_MONDE] got news from RSS server - OK');
+		await this.sendToFront(news);
+		console.info('[NEWS_LE_MONDE] sent news to front - OK');
+	},
+
+
 	async getNews() {
-		try {
-			const respText = await this.newsFetch();
-			this.news = this.getItems(respText);
-			console.info('[NEWS_LE_MONDE] getNews - OK');
-			this.initNews();
-			this.cycleContent();
-		} catch(err) {
-			console.error(err);
-		}
+		const respText = await this.newsFetch();
+		return await this.getItems(respText);
 	},
 
 
-	initNews() {
-		this.cycle = setInterval(async() => await this.getNews(), this.config.fetchInterval || 30 * 60 * 1000);
-	},
-
-
-	cycleContent() {
-		console.debug('[NEWS_LE_MONDE][DEBUG] - cycleContent - start');
-
-		this.newsStart();
-
-		setInterval(() => {
-			this.newsStart();
-		}, 20 * 1000)
-	},
-
-
-	newsStart() {
-		return this.news.length &&
-			this.sendNext();
+	async sendToFront(news) {
+		return this.sendSocketNotification('NEWS_LE_MONDE_CONTENT', news);
 	},
 
 
@@ -107,28 +103,6 @@ module.exports = NodeHelper.create({
 	},
 
 
-	sendNext() {
-		const news = this.getNext();
-		this.sendSocketNotification('NEWS_LE_MONDE_CONTENT', news);
-	},
-
-
-	getNext() {
-		let news = this.news[this.iteration];
-		if (!news) {
-			this.iteration = 0;
-			news = this.news[this.iteration];
-		}
-		++this.iteration;
-		return this.serialize(news);
-	},
-
-
-	serialize(news) {
-		return JSON.stringify(news)
-	},
-
-
 	parse(respText) {
 		if (this.xmlValidate(respText) === false)
 			return [];
@@ -152,6 +126,4 @@ module.exports = NodeHelper.create({
 			return false;
 		}
 	},
-
-
 });

@@ -2,8 +2,33 @@
 	Use ` | safe` to allow html tages within the text string.
 	https://mozilla.github.io/nunjucks/templating.html#autoescaping
 -->
-<div id="news-french">
-	<div class="large bright">Le Monde NEWS {{ text | safe }}</div>
-	<div id="title" class="large bright">title {{ title }}</div>
-	<div id="description" class="large bright">description {{ description }}</div>
+<div id="french-news">
+	<div id="french-news-logo">
+		
+	</div>
+
+	<div id="french-news-content">
+
+		<div id="french-news-strip">
+
+			{% for newsItem in news %}
+
+				<div class="french-news-item">
+
+					<span class="french-news-title bright medium semi-thin">
+						{{ newsItem.title }}
+					</span>
+
+					<span class="french-news-description dimmed medium light">
+						{{ newsItem.description }}
+					</span>
+					
+				</div>
+
+
+			{% endfor %}
+
+		</div>
+
+	</div>
 </div>
