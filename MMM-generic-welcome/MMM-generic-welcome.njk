@@ -1,0 +1,34 @@
+<!--
+	Use ` | safe` to allow html tages within the text string.
+	https://mozilla.github.io/nunjucks/templating.html#autoescaping
+-->
+
+{% if text %}
+
+	<div id="generic-welcome">
+
+		<!-- 
+
+			text
+			fontSize
+			fontWeight
+			intensity
+			textAlign
+
+		-->
+
+		<div style="padding-bottom: 25px; width: 80%; margin: auto;">
+			<div class="{{ classes }}" style="padding-bottom: 15px;">
+				{{ text }}
+			</div>
+			<hr style="border-bottom: 1px solid #666;">
+		</div>
+
+
+	</div>
+
+{% else %}
+
+	<div id="generic-welcome"></div>
+
+{% endif %}

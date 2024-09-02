@@ -10,11 +10,8 @@ Module.register('MMM-news-le-monde', {
 
 
 	start() {
-		console.debug('this.newsItem', this.newsItem)
-
 		this.url = this.config.url;
 		this.news = this.config.news;
-
 		this.sendSocketNotification('NEWS_LE_MONDE_CONFIG', { config: this.config });
 	},
 
@@ -43,7 +40,6 @@ Module.register('MMM-news-le-monde', {
 
 		if (notification === 'NEWS_LE_MONDE_CONTENT') {
 			this.news = this.arrayPad(payload);
-			console.debug('this.news.length', this.news.length)
 			this.updateDom();
 		}
 	},

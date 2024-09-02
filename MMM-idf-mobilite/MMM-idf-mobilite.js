@@ -7,10 +7,10 @@ Module.register('MMM-idf-mobilite', {
 		userModule: 'USERS_LOGIN',
 		idfMobilite: {
 			baseUrl: 'https://prim.iledefrance-mobilites.fr/marketplace/v2/navitia/',
-			apiKey: '< IDF Mobilités API Key >',
+			apiKey: 'RMJ7ZSN0HTnw8N0b3dnwprETkoGEIng5',
 		},
 		firebaseConfig: {
-			apiKey: '< Firebase / Firestore API Key >',
+			apiKey: 'AIzaSyDICIrxQCMOPzfDnRo1XS4ScoKyc5_1n0Y',
 			authDomain: 'connected-mirror-91cb7.firebaseapp.com',
 			projectId: 'connected-mirror-91cb7',
 			storageBucket: 'connected-mirror-91cb7.appspot.com',
@@ -71,15 +71,13 @@ Module.register('MMM-idf-mobilite', {
 		if (!user)
 			return;
 
-		console.info('[INFO] MMM-idf-mobilite - received notification', notification, payload);
-		console.info('[INFO] MMM-idf-mobilite - sending socket notification', notification, payload);
 		this.sendSocketNotification(this.config.userModule + '_USER_IDENTITY', { user });
+		console.info('[INFO] MMM-idf-mobilite - received and sent socket notification - OK', notification, payload);
 	},
 
 
 	getUser(payload) {
-		const [ user = null ] = payload;
-		return user;
+		return payload?.[0] || null;
 	},
 
 
@@ -88,7 +86,7 @@ Module.register('MMM-idf-mobilite', {
 		if (notification !== 'PUBLIC_TRANSPORTATION_IDF_MOB_JOURNEY')
 			return;
 
-		console.info('[INFO] MMM-idf-mobilite - received sockey notification', notification, payload);
+		console.info('[INFO] MMM-idf-mobilite - received socket notification', notification, payload);
 
 		const {
 			profile = null,
@@ -103,7 +101,7 @@ Module.register('MMM-idf-mobilite', {
 
 
 	getRegExp() {
-		const userModule = this.config.userModule;
+		const { userModule } = this.config;
 		return new RegExp(`^${ userModule }(.*)?$`);
 	},
 

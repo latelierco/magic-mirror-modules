@@ -200,18 +200,23 @@ function stringFormatSection(options) {
 
 
 async function getDisruptions(section) {
-	const { display_informations: { links = null } = {} } = section;
+	try {
+		const { display_informations: { links = null } = {} } = section;
 
-	if (links === null)
-		return []
+		if (links === null)
+			return []
 
-	const disruptionsPromises = links.filter(link => link?.type === 'disruption')
-		.map(async(link) => {
-			const p = await queryDisruption(link.id);
-			return p;
-		});
-	const allDisruptions = await Promise.all(disruptionsPromises);
-	return formatDisruptions(allDisruptions);
+		const disruptionsPromises = links.filter(link => link?.type === 'disruption')
+			.map(async(link) => {
+				const p = await queryDisruption(link.id);
+				return p;
+			});
+		const allDisruptions = await Promise.all(disruptionsPromises);
+		return formatDisruptions(allDisruptions);
+	} catch(err) {
+		console.error(err)
+		return [];
+	}
 }
 
 

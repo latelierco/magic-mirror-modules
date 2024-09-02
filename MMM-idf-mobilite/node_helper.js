@@ -30,6 +30,7 @@ module.exports = NodeHelper.create({
 
 	async socketNotificationReceived (notification, payload) {
 
+
 		if (this.isModuleNotif(notification) === false)
 			return;
 
@@ -43,13 +44,12 @@ module.exports = NodeHelper.create({
 
 				case 'USERS_LOGIN_USER_IDENTITY':
 					const { user: userName } = payload;
+					if (userName.toLowerCase() === 'unknown')
+						return;
 					const journey = await this.getPublicTransportationDetails(userName);
 					console.info(`[PUBLIC_TRANSPORTATION_IDF_MOB][INFO] Got public transportation info for user ${ userName } - OK`);
 					this.sendSocketNotification('PUBLIC_TRANSPORTATION_IDF_MOB_JOURNEY', { profile: this.profile, journey });
 					break;
-
-				default:
-					return;
 		}
 	},
 
@@ -96,7 +96,7 @@ module.exports = NodeHelper.create({
 
 			const q = query(
 				collection(this.db, 'users'),
-				where('user_name', '==', userName)
+				where('user_name', '==', userName.toLowerCase())
 			);
 
 			const snap = await getDocs(q)
@@ -105,7 +105,6 @@ module.exports = NodeHelper.create({
 				profile.id = doc.id
 			})
 
-			console.debug('profile', profile)
 			console.info(`[PUBLIC_TRANSPORTATION_IDF_MOB][INFO] Got profile for user ${ userName } - OK`);
 			return profile;
 		} catch(err) {
@@ -144,9 +143,12 @@ module.exports = NodeHelper.create({
 		const homeStr = this.getLocationToString(location_home);
 		const workStr = this.getLocationToString(location_work);
 
+
 		const placesRes = await this.getPlacesQueries({ homeStr, workStr });
 		console.info(`[PUBLIC_TRANSPORTATION_IDF_MOB][INFO] Got geoloc data for user - OK`);
-		return this.getPlacesIds(placesRes);
+
+		const placesIds = this.getPlacesIds(placesRes);
+		return placesIds;
 	},
 
 
@@ -202,19 +204,23 @@ module.exports = NodeHelper.create({
 
 	async getPlacesCallback(address) {
 
-		const url = this.getPlacesUrl(address[1]);
+		return new Promise(async(resolve, reject) => {
+			const url = this.getPlacesUrl(address[1]);
 
-		const resp = await fetch(url, {
-			headers: {
-				accept: 'application/json',
-				apiKey: this.config.idfMobilite.apiKey,
-			}
+			const resp = await fetch(url, {
+				headers: {
+					accept: 'application/json',
+					apiKey: this.config.idfMobilite.apiKey,
+				}
+			});
+
+			if (!resp.ok)
+				throw Error(`Error: get places query status code: ${ resp.status }`);
+
+			const formatted = this.formatPlacesResults(address, resp);
+			setTimeout(() => resolve(formatted), 1500);
 		});
 
-		if (!resp.ok)
-			throw Error(`Error: get places query status code: ${ resp.status }`);
-
-		return this.formatPlacesResults(address, resp);
 	},
 
 
@@ -248,6 +254,5 @@ module.exports = NodeHelper.create({
 			.filter((parts, idx) => idx < 2)
 			.join('')
 			.replace(/-/g, '');
-	},
-
+	}
 });
