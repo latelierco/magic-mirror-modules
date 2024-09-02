@@ -41,7 +41,7 @@ Module.register("MMM-hello-user", {
 		if (
 			typeof this.user === 'string' &&
 			this.user.toUpperCase() === 'UNKNOWN'
-		) return `Bienvenue à l'Atelier !!!`;
+		) return `Bienvenue à L'Atelier !!!`;
 
 		return `Bonjour ${ this.capitalize(this.user) } !!!`;
 	},

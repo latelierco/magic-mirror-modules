@@ -3,7 +3,7 @@ Module.register('MMM-news-le-monde', {
 	// Default module config.
 
 	defaults: {
-		MAX_NEWS_LENGTH: 20,
+		MAX_NEWS_LENGTH: 40,
 		url: 'https://www.lemonde.fr/rss/en_continu.xml?refresh=' + Math.floor(Math.random() * 1000000),
 		news: []
 	},
