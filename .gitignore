@@ -129,4 +129,5 @@ backoffice-magic-mirror/
 backoffice-vue/
 test.py
 MMM-idf-mobilite/security/
+*package-lock.json
 
